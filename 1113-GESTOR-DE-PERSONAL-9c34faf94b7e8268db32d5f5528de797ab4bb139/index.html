@@ -67,26 +67,4 @@
       <button onclick="registrar('Ausencia')">Ausencia</button>
     </div>
 
-    <p id="mensaje"></p>
-  </div>
-
-  <script>
-    function mostrarPanel() {
-      document.getElementById('panelEmpleado').style.display = 'block';
-    }
-
-    function registrar(tipo) {
-      const codigo = document.getElementById('codigo').value;
-
-      if (codigo === '') {
-        alert('Por favor ingrese su código');
-        return;
-      }
-
-      document.getElementById('mensaje').innerText =
-        'Empleado ' + codigo + ' registró: ' + tipo;
-    }
-  </script>
-
-</body>
-</html>
+    <p
