@@ -110,7 +110,20 @@
       abrir('menu');
     }
 
+    // 🔥 VERIFICAR CAMBIO DE DÍA
+    function verificarDia() {
+      const hoy = new Date().toLocaleDateString();
+      const ultimaFecha = localStorage.getItem('fechaRegistro');
+
+      if (ultimaFecha !== hoy) {
+        localStorage.removeItem('empleados'); // borrar registros
+        localStorage.setItem('fechaRegistro', hoy);
+      }
+    }
+
     function registrarEmpleado() {
+      verificarDia();
+
       const codigo = document.getElementById('codigoEmpleado').value.trim();
 
       if (!codigo) {
@@ -145,7 +158,7 @@
           `Empleado ${codigo} registró SALIDA`;
 
       } else {
-        alert('Este empleado ya registró entrada y salida');
+        alert('Este empleado ya registró entrada y salida hoy');
         return;
       }
 
@@ -157,6 +170,8 @@
     }
 
     function mostrarEmpleados() {
+      verificarDia();
+
       let datos = JSON.parse(localStorage.getItem('empleados')) || [];
       const tbody = document.getElementById('tablaEmpleados');
 
@@ -175,6 +190,7 @@
     }
 
     // cargar datos al iniciar
+    verificarDia();
     mostrarEmpleados();
   </script>
 
