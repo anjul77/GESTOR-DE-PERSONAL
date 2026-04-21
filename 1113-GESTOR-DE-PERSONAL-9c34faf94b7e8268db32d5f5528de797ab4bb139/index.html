@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Control de Empleados</title>
+  <title>Sistema Principal</title>
 
   <style>
     body {
@@ -21,27 +21,31 @@
       font-size: 16px;
     }
 
-    .btn-azul { background: #007BFF; }
+    .btn { background: #007BFF; }
     .btn-verde { background: #28a745; }
     .btn-rojo { background: #dc3545; }
+
+    .pantalla {
+      display: none;
+    }
+
+    #menu {
+      display: block;
+    }
 
     .panel {
       margin-top: 20px;
       background: white;
       padding: 20px;
       border-radius: 10px;
-      display: none;
-    }
-
-    input {
-      padding: 10px;
-      margin: 10px;
     }
 
     table {
       margin-top: 20px;
       border-collapse: collapse;
       width: 80%;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     th, td {
@@ -57,36 +61,57 @@
 </head>
 <body>
 
-  <button class="btn-azul" onclick="mostrarPanel()">Asistencia</button>
-  <button onclick="limpiarDatos()">Borrar registros</button>
+  <!-- 🟦 MENÚ PRINCIPAL -->
+  <div id="menu" class="pantalla">
+    <h2>Menú Principal</h2>
 
-  <div class="panel" id="panel">
-    <h3>Ingrese su código</h3>
-    <input type="text" id="codigo">
-
-    <br>
-
-    <button class="btn-verde" onclick="registrar('Entrada')">Entrada</button>
-    <button class="btn-rojo" onclick="registrar('Salida')">Salida</button>
-
-    <p id="mensaje"></p>
+    <button class="btn" onclick="abrir('asistencia')">Asistencia</button>
+    <button class="btn">Empleados</button>
+    <button class="btn">Reportes</button>
+    <button class="btn">Horarios</button>
+    <button class="btn">Pagos</button>
+    <button class="btn">Configuración</button>
+    <button class="btn">Salir</button>
   </div>
 
-  <table id="tabla">
-    <thead>
-      <tr>
-        <th>Empleado</th>
-        <th>Tipo</th>
-        <th>Fecha</th>
-        <th>Hora</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- 🟩 MÓDULO ASISTENCIA -->
+  <div id="asistencia" class="pantalla">
+    <button onclick="volver()">⬅ Volver</button>
+
+    <div class="panel">
+      <h3>Control de Asistencia</h3>
+
+      <input type="text" id="codigo" placeholder="Código">
+
+      <br>
+
+      <button class="btn-verde" onclick="registrar('Entrada')">Entrada</button>
+      <button class="btn-rojo" onclick="registrar('Salida')">Salida</button>
+
+      <p id="mensaje"></p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Tipo</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+        </tr>
+      </thead>
+      <tbody id="tabla"></tbody>
+    </table>
+  </div>
 
   <script>
-    function mostrarPanel() {
-      document.getElementById('panel').style.display = 'block';
+    function abrir(pantalla) {
+      document.querySelectorAll('.pantalla').forEach(p => p.style.display = 'none');
+      document.getElementById(pantalla).style.display = 'block';
+    }
+
+    function volver() {
+      abrir('menu');
     }
 
     function registrar(tipo) {
@@ -107,7 +132,6 @@
       };
 
       let datos = JSON.parse(localStorage.getItem('registros')) || [];
-
       datos.push(registro);
       localStorage.setItem('registros', JSON.stringify(datos));
 
@@ -121,12 +145,12 @@
 
     function mostrarTabla() {
       let datos = JSON.parse(localStorage.getItem('registros')) || [];
-      const tbody = document.querySelector('#tabla tbody');
+      const tbody = document.getElementById('tabla');
 
       tbody.innerHTML = '';
 
       datos.forEach(r => {
-        let fila = `
+        tbody.innerHTML += `
           <tr>
             <td>${r.codigo}</td>
             <td>${r.tipo}</td>
@@ -134,18 +158,10 @@
             <td>${r.hora}</td>
           </tr>
         `;
-        tbody.innerHTML += fila;
       });
     }
 
-    function limpiarDatos() {
-      if (confirm('¿Borrar todos los registros?')) {
-        localStorage.removeItem('registros');
-        mostrarTabla();
-      }
-    }
-
-    // Cargar datos al abrir
+    // cargar tabla al iniciar
     mostrarTabla();
   </script>
 
