@@ -82,7 +82,7 @@
     </div>
   </div>
 
-  <!-- 📝 REGISTRO MEJORADO -->
+  <!-- 📝 REGISTRO -->
   <div id="registro" class="pantalla">
     <div class="panel">
       <h3>Crear cuenta</h3>
@@ -112,6 +112,8 @@
   <div id="empleados" class="pantalla">
     <button class="btn" onclick="volver()">⬅ Volver</button>
 
+    <h4 id="usuarioActivo"></h4>
+
     <div class="panel">
       <h3>Registro de Empleados</h3>
 
@@ -137,8 +139,20 @@
 
   <script>
     function abrir(pantalla) {
+      const sesion = localStorage.getItem('sesionActiva');
+
+      if (pantalla === 'empleados' && !sesion) {
+        alert('Debe iniciar sesión');
+        abrir('login');
+        return;
+      }
+
       document.querySelectorAll('.pantalla').forEach(p => p.style.display = 'none');
       document.getElementById(pantalla).style.display = 'block';
+
+      if (pantalla === 'empleados') {
+        mostrarUsuario();
+      }
     }
 
     function volver() {
@@ -157,10 +171,26 @@
         return;
       }
 
+      localStorage.setItem('sesionActiva', 'true');
+
       abrir('menu');
     }
 
-    // 📝 REGISTRO MEJORADO
+    function logout() {
+      localStorage.removeItem('sesionActiva');
+      abrir('login');
+    }
+
+    function mostrarUsuario() {
+      const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+      if (usuario) {
+        document.getElementById('usuarioActivo').innerText =
+          'Usuario: ' + usuario.usuario;
+      }
+    }
+
+    // 📝 REGISTRO
     function registrarUsuario() {
       const usuario = document.getElementById('usuario').value.trim();
       const correo = document.getElementById('nuevoCorreo').value.trim();
@@ -181,26 +211,17 @@
 
       if (telefono.length < 7) {
         document.getElementById('mensajeRegistro').innerText =
-          'Número de contacto inválido';
+          'Número inválido';
         return;
       }
 
-      const nuevoUsuario = {
-        usuario,
-        correo,
-        password,
-        telefono
-      };
+      const nuevoUsuario = { usuario, correo, password, telefono };
 
       localStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
 
       document.getElementById('mensajeRegistro').innerText =
-        'Cuenta creada correctamente';
+        'Cuenta creada';
 
-      abrir('login');
-    }
-
-    function logout() {
       abrir('login');
     }
 
