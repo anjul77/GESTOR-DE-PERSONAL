@@ -150,6 +150,10 @@
       document.querySelectorAll('.pantalla').forEach(p => p.style.display = 'none');
       document.getElementById(pantalla).style.display = 'block';
 
+      if (pantalla === 'menu') {
+        verificarPermisos();
+      }
+
       if (pantalla === 'empleados') {
         mostrarUsuario();
       }
@@ -159,7 +163,7 @@
       abrir('menu');
     }
 
-    // 🔐 LOGIN
+    // 🔐 LOGIN CON ROL
     function login() {
       const correo = document.getElementById('correo').value;
       const password = document.getElementById('password').value;
@@ -173,12 +177,38 @@
 
       localStorage.setItem('sesionActiva', 'true');
 
+      if (usuario.usuario.toLowerCase() === 'jefe') {
+        localStorage.setItem('rol', 'jefe');
+      } else {
+        localStorage.setItem('rol', 'empleado');
+      }
+
       abrir('menu');
     }
 
     function logout() {
       localStorage.removeItem('sesionActiva');
+      localStorage.removeItem('rol');
       abrir('login');
+    }
+
+    // 🔒 BLOQUEO DE BOTONES
+    function verificarPermisos() {
+      const rol = localStorage.getItem('rol');
+
+      if (rol !== 'jefe') {
+        document.querySelectorAll('button').forEach(btn => {
+          btn.disabled = true;
+          btn.style.background = 'gray';
+        });
+
+        document.querySelectorAll('button').forEach(btn => {
+          if (btn.innerText.includes('Cerrar sesión')) {
+            btn.disabled = false;
+            btn.style.background = '#007BFF';
+          }
+        });
+      }
     }
 
     function mostrarUsuario() {
@@ -295,3 +325,4 @@
 
 </body>
 </html>
+
