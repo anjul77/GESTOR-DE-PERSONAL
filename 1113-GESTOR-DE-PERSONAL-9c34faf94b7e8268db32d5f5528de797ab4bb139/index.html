@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema Principal</title>
+  <title>Sistema de Empleados</title>
 
   <style>
     body {
@@ -66,7 +66,7 @@
     <h2>Menú Principal</h2>
 
     <button class="btn" onclick="abrir('asistencia')">Asistencia</button>
-    <button class="btn">Empleados</button>
+    <button class="btn" onclick="abrir('empleados')">Empleados</button>
     <button class="btn">Reportes</button>
     <button class="btn">Horarios</button>
     <button class="btn">Pagos</button>
@@ -104,6 +104,34 @@
     </table>
   </div>
 
+  <!-- 🟨 MÓDULO EMPLEADOS -->
+  <div id="empleados" class="pantalla">
+    <button onclick="volver()">⬅ Volver</button>
+
+    <div class="panel">
+      <h3>Registro de Empleados</h3>
+
+      <input type="text" id="codigoEmpleado" placeholder="Código empleado">
+
+      <br>
+
+      <button class="btn" onclick="registrarEmpleado()">Registrar</button>
+
+      <p id="mensajeEmpleado"></p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+        </tr>
+      </thead>
+      <tbody id="tablaEmpleados"></tbody>
+    </table>
+  </div>
+
   <script>
     function abrir(pantalla) {
       document.querySelectorAll('.pantalla').forEach(p => p.style.display = 'none');
@@ -114,6 +142,7 @@
       abrir('menu');
     }
 
+    // 🔵 ASISTENCIA (historial)
     function registrar(tipo) {
       const codigo = document.getElementById('codigo').value.trim();
 
@@ -161,35 +190,70 @@
       });
     }
 
-    // cargar tabla al iniciar
+    // 🟡 EMPLEADOS (entrada/salida automática)
+    function registrarEmpleado() {
+      const codigo = document.getElementById('codigoEmpleado').value.trim();
+
+      if (!codigo) {
+        alert('Ingrese código');
+        return;
+      }
+
+      let datos = JSON.parse(localStorage.getItem('empleados')) || [];
+
+      let empleado = datos.find(e => e.codigo === codigo);
+      const ahora = new Date().toLocaleTimeString();
+
+      if (!empleado) {
+        empleado = {
+          codigo: codigo,
+          entrada: ahora,
+          salida: ''
+        };
+        datos.push(empleado);
+
+        document.getElementById('mensajeEmpleado').innerText =
+          `Empleado ${codigo} registró ENTRADA`;
+
+      } else if (!empleado.salida) {
+        empleado.salida = ahora;
+
+        document.getElementById('mensajeEmpleado').innerText =
+          `Empleado ${codigo} registró SALIDA`;
+
+      } else {
+        alert('Este empleado ya registró entrada y salida');
+        return;
+      }
+
+      localStorage.setItem('empleados', JSON.stringify(datos));
+
+      document.getElementById('codigoEmpleado').value = '';
+
+      mostrarEmpleados();
+    }
+
+    function mostrarEmpleados() {
+      let datos = JSON.parse(localStorage.getItem('empleados')) || [];
+      const tbody = document.getElementById('tablaEmpleados');
+
+      tbody.innerHTML = '';
+
+      datos.forEach(e => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${e.codigo}</td>
+            <td>${e.entrada || '-'}</td>
+            <td>${e.salida || '-'}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // cargar datos al iniciar
     mostrarTabla();
+    mostrarEmpleados();
   </script>
-<div id="empleados" class="pantalla">
-  <button onclick="volver()">⬅ Volver</button>
-
-  <div class="panel">
-    <h3>Registro de Empleados</h3>
-
-    <input type="text" id="codigoEmpleado" placeholder="Código empleado">
-
-    <br>
-
-    <button onclick="registrarEmpleado()">Registrar</button>
-
-    <p id="mensajeEmpleado"></p>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Empleado</th>
-        <th>Entrada</th>
-        <th>Salida</th>
-      </tr>
-    </thead>
-    <tbody id="tablaEmpleados"></tbody>
-  </table>
-</div>
 
 </body>
 </html>
