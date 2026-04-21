@@ -2,52 +2,91 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control de Empleados</title>
   <style>
-    body { font-family: Arial; text-align: center; background: #f4f4f4; }
-    h1 { margin-top: 20px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    .container { margin-top: 20px; }
-    input { padding: 8px; margin: 5px; }
-    ul { list-style: none; padding: 0; }
-    li { background: white; margin: 5px auto; padding: 10px; width: 300px; border-radius: 8px; }
-    .asiste { color: green; }
-    .no-asiste { color: red; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #eef2f3;
+    }
+
+    button {
+      padding: 20px 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .panel {
+      display: none;
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+      padding: 10px;
+      margin-top: 10px;
+      width: 200px;
+    }
+
+    .acciones button {
+      margin: 10px;
+      background-color: #28a745;
+    }
+
+    .acciones button:last-child {
+      background-color: #dc3545;
+    }
   </style>
 </head>
 <body>
 
-<h1>Control de Asistencia</h1>
-<button onclick="mostrarSeccion()">Empleados</button>
+  <button onclick="mostrarPanel()">Empleados</button>
 
-<div id="seccion" class="container" style="display:none;">
-  <h2>Registrar Asistencia</h2>
-  <input type="text" id="nombre" placeholder="Nombre del empleado">
-  <input type="text" id="codigo" placeholder="Código">
-  <button onclick="registrar()">Registrar</button>
+  <div class="panel" id="panelEmpleado">
+    <h3>Ingrese su código</h3>
+    <input type="text" id="codigo" placeholder="Código del empleado">
 
-  <h3>Lista de asistencia</h3>
-  <ul id="lista"></ul>
-</div>
+    <div class="acciones">
+      <button onclick="registrar('Asistencia')">Asistencia</button>
+      <button onclick="registrar('Ausencia')">Ausencia</button>
+    </div>
 
-<script>
-  function mostrarSeccion() {
-    document.getElementById('seccion').style.display = 'block';
-  }
+    <p id="mensaje"></p>
+  </div>
 
-  function registrar() {
-    const nombre = document.getElementById('nombre').value;
-    const codigo = document.getElementById('codigo').value;
-
-    if (!nombre || !codigo) {
-      alert('Completa todos los campos');
-      return;
+  <script>
+    function mostrarPanel() {
+      document.getElementById('panelEmpleado').style.display = 'block';
     }
 
-    // Simulación: si el código termina en número par = asiste
-    const asiste = parseInt(codigo.slice(-1)) % 2 === 0;
+    function registrar(tipo) {
+      const codigo = document.getElementById('codigo').value;
 
-    const li = document.createElement('li');
-    li.innerHTML = `${nombre} - Código: ${codigo} - <strong class="${asiste ? 'asiste' : 'no-asiste'}">${asiste ? 'Asiste' : 'No asiste'}</strong>`;
+      if (codigo === '') {
+        alert('Por favor ingrese su código');
+        return;
+      }
 
-    document.getE
+      document.getElementById('mensaje').innerText =
+        'Empleado ' + codigo + ' registró: ' + tipo;
+    }
+  </script>
+
+</body>
+</html>
