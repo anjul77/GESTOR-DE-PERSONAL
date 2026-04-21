@@ -1,120 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Tipos de usuarios</title>
-
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema</title>
+  <style>
     body {
-        font-family: Arial, sans-serif;
-        background: #1e1e1e;
-        color: white;
-        padding: 20px;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(2, 160px);
+      gap: 20px;
+    }
+    button {
+      padding: 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+    }
+    #inicio { background-color: #2196F3; }
+    #reportes { background-color: #4CAF50; }
+    #horarios { background-color: #FF9800; }
+    #pagos { background-color: #9C27B0; }
+
+    button:hover {
+      opacity: 0.8;
     }
 
-    .section {
-        margin-bottom: 15px;
-        border-radius: 8px;
-        overflow: hidden;
+    .seccion {
+      display: none;
+      margin-top: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    .header {
-        background: #333;
-        padding: 12px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-    }
-
-    .arrow {
-        margin-right: 10px;
-        transition: transform 0.3s;
-    }
-
-    .content {
-        background: #007BFF;
-        padding: 10px 20px;
-        display: none;
-    }
-
-    .active .content {
-        display: block;
-    }
-
-    .active .arrow {
-        transform: rotate(90deg);
-    }
-</style>
+  </style>
 </head>
-
 <body>
 
-<h2>3. Tipos de usuarios en la plataforma</h2>
+  <h1>Sistema Principal</h1>
 
-<div class="section">
-    <div class="header" onclick="toggle(this)">
-        <span class="arrow">▶</span>
-        Administrador/Jefe
-    </div>
-    <div class="content">
-        <ul>
-            <li>Acceso total al sistema</li>
-            <li>Generación de reportes</li>
-            <li>Configuración de la plataforma</li>
-        </ul>
-    </div>
-</div>
+  <div class="container">
+    <button id="inicio" onclick="mostrar('inicioSeccion')">Inicio</button>
+    <button id="reportes" onclick="mostrar('reportesSeccion')">Reportes</button>
+    <button id="horarios" onclick="mostrar('horariosSeccion')">Horarios</button>
+    <button id="pagos" onclick="mostrar('pagosSeccion')">Pagos</button>
+  </div>
 
-<div class="section">
-    <div class="header" onclick="toggle(this)">
-        <span class="arrow">▶</span>
-        Supervisor
-    </div>
-    <div class="content">
-        <ul>
-            <li>Visualización del equipo</li>
-            <li>Gestión de horarios y asistencias</li>
-            <li>Aprobación de permisos</li>
-        </ul>
-    </div>
-</div>
+  <div id="inicioSeccion" class="seccion">
+    <h2>Inicio</h2>
+    <p>Bienvenido. Desde aquí puedes acceder a reportes, horarios y pagos.</p>
+  </div>
 
-<div class="section">
-    <div class="header" onclick="toggle(this)">
-        <span class="arrow">▶</span>
-        Empleado
-    </div>
-    <div class="content">
-        <ul>
-            <li>Registro de asistencia</li>
-            <li>Solicitud de permisos</li>
-            <li>Consulta de horarios</li>
-        </ul>
-    </div>
-</div>
+  <div id="reportesSeccion" class="seccion">
+    <h2>Reportes</h2>
+    <p>Aquí puedes ver los reportes del sistema.</p>
+  </div>
 
-<h2>4. Tipos de gestión</h2>
+  <div id="horariosSeccion" class="seccion">
+    <h2>Horarios</h2>
+    <p>Consulta y gestiona los horarios.</p>
+  </div>
 
-<div class="section">
-    <div class="header" onclick="toggle(this)">
-        <span class="arrow">▶</span>
-        Gestión
-    </div>
-    <div class="content">
-        <ul>
-            <li>Pagos y nóminas</li>
-            <li>Asistencias y faltas</li>
-            <li>Historial laboral</li>
-            <li>Descuentos salariales</li>
-        </ul>
-    </div>
-</div>
+  <div id="pagosSeccion" class="seccion">
+    <h2>Pagos</h2>
+    <p>Administra los pagos.</p>
+  </div>
 
-<script>
-function toggle(element) {
-    element.parentElement.classList.toggle("active");
-}
-</script>
+  <script>
+    function mostrar(seccionId) {
+      const secciones = document.querySelectorAll('.seccion');
+      secciones.forEach(sec => sec.style.display = 'none');
+
+      document.getElementById(seccionId).style.display = 'block';
+    }
+
+    // Mostrar inicio por defecto
+    mostrar('inicioSeccion');
+  </script>
 
 </body>
 </html>
