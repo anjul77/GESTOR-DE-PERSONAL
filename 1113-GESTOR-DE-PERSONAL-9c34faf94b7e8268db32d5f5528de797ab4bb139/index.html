@@ -1,12 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GESTOR DE PERSONAL</title>
+<meta charset="UTF-8">
+<title>Tipos de usuarios</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #1e1e1e;
+        color: white;
+        padding: 20px;
+    }
+
+    .section {
+        margin-bottom: 15px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .header {
+        background: #333;
+        padding: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+    .arrow {
+        margin-right: 10px;
+        transition: transform 0.3s;
+    }
+
+    .content {
+        background: #007BFF;
+        padding: 10px 20px;
+        display: none;
+    }
+
+    .active .content {
+        display: block;
+    }
+
+    .active .arrow {
+        transform: rotate(90deg);
+    }
+</style>
 </head>
+
 <body>
-    <p style="color: red;">Texto rojo</p>
-    
+
+<h2>3. Tipos de usuarios en la plataforma</h2>
+
+<div class="section">
+    <div class="header" onclick="toggle(this)">
+        <span class="arrow">▶</span>
+        Administrador/Jefe
+    </div>
+    <div class="content">
+        <ul>
+            <li>Acceso total al sistema</li>
+            <li>Generación de reportes</li>
+            <li>Configuración de la plataforma</li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+    <div class="header" onclick="toggle(this)">
+        <span class="arrow">▶</span>
+        Supervisor
+    </div>
+    <div class="content">
+        <ul>
+            <li>Visualización del equipo</li>
+            <li>Gestión de horarios y asistencias</li>
+            <li>Aprobación de permisos</li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+    <div class="header" onclick="toggle(this)">
+        <span class="arrow">▶</span>
+        Empleado
+    </div>
+    <div class="content">
+        <ul>
+            <li>Registro de asistencia</li>
+            <li>Solicitud de permisos</li>
+            <li>Consulta de horarios</li>
+        </ul>
+    </div>
+</div>
+
+<h2>4. Tipos de gestión</h2>
+
+<div class="section">
+    <div class="header" onclick="toggle(this)">
+        <span class="arrow">▶</span>
+        Gestión
+    </div>
+    <div class="content">
+        <ul>
+            <li>Pagos y nóminas</li>
+            <li>Asistencias y faltas</li>
+            <li>Historial laboral</li>
+            <li>Descuentos salariales</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+function toggle(element) {
+    element.parentElement.classList.toggle("active");
+}
+</script>
+
 </body>
 </html>
