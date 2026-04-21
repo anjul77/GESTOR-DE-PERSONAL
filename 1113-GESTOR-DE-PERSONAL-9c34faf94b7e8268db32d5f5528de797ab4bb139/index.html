@@ -2,90 +2,151 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control de Empleados</title>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #eef2f3;
+      font-family: Arial;
+      text-align: center;
+      background: #eef2f3;
     }
 
     button {
-      padding: 20px 40px;
-      font-size: 18px;
+      padding: 15px 25px;
+      margin: 10px;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      background-color: #007BFF;
       color: white;
+      font-size: 16px;
     }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+    .btn-azul { background: #007BFF; }
+    .btn-verde { background: #28a745; }
+    .btn-rojo { background: #dc3545; }
 
     .panel {
-      display: none;
       margin-top: 20px;
       background: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none;
     }
 
     input {
       padding: 10px;
-      margin-top: 10px;
-      width: 200px;
-    }
-
-    .acciones button {
       margin: 10px;
-      background-color: #28a745;
     }
 
-    .acciones button:last-child {
-      background-color: #dc3545;
+    table {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    th {
+      background: #007BFF;
+      color: white;
     }
   </style>
 </head>
 <body>
 
-  <button onclick="mostrarPanel()">Asistencia</button>
+  <button class="btn-azul" onclick="mostrarPanel()">Asistencia</button>
+  <button onclick="limpiarDatos()">Borrar registros</button>
 
-  <div class="panel" id="panelAsistencia">
+  <div class="panel" id="panel">
     <h3>Ingrese su código</h3>
-    <input type="text" id="codigo" placeholder="Código del empleado">
+    <input type="text" id="codigo">
 
-    <div class="acciones">
-      <button onclick="registrar('Asistencia')">Asistencia</button>
-      <button onclick="registrar('Ausencia')">Ausencia</button>
-    </div>
+    <br>
+
+    <button class="btn-verde" onclick="registrar('Entrada')">Entrada</button>
+    <button class="btn-rojo" onclick="registrar('Salida')">Salida</button>
 
     <p id="mensaje"></p>
   </div>
 
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Empleado</th>
+        <th>Tipo</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
     function mostrarPanel() {
-      document.getElementById('panelAsistencia').style.display = 'block';
+      document.getElementById('panel').style.display = 'block';
     }
 
     function registrar(tipo) {
-      const codigo = document.getElementById('codigo').value;
+      const codigo = document.getElementById('codigo').value.trim();
 
-      if (codigo === '') {
-        alert('Por favor ingrese su código');
+      if (!codigo) {
+        alert('Ingrese código');
         return;
       }
 
+      const ahora = new Date();
+
+      const registro = {
+        codigo,
+        tipo,
+        fecha: ahora.toLocaleDateString(),
+        hora: ahora.toLocaleTimeString()
+      };
+
+      let datos = JSON.parse(localStorage.getItem('registros')) || [];
+
+      datos.push(registro);
+      localStorage.setItem('registros', JSON.stringify(datos));
+
       document.getElementById('mensaje').innerText =
-        'Empleado ' + codigo + ' registró: ' + tipo;
+        `Empleado ${codigo} registró ${tipo}`;
+
+      document.getElementById('codigo').value = '';
+
+      mostrarTabla();
     }
+
+    function mostrarTabla() {
+      let datos = JSON.parse(localStorage.getItem('registros')) || [];
+      const tbody = document.querySelector('#tabla tbody');
+
+      tbody.innerHTML = '';
+
+      datos.forEach(r => {
+        let fila = `
+          <tr>
+            <td>${r.codigo}</td>
+            <td>${r.tipo}</td>
+            <td>${r.fecha}</td>
+            <td>${r.hora}</td>
+          </tr>
+        `;
+        tbody.innerHTML += fila;
+      });
+    }
+
+    function limpiarDatos() {
+      if (confirm('¿Borrar todos los registros?')) {
+        localStorage.removeItem('registros');
+        mostrarTabla();
+      }
+    }
+
+    // Cargar datos al abrir
+    mostrarTabla();
   </script>
 
 </body>
