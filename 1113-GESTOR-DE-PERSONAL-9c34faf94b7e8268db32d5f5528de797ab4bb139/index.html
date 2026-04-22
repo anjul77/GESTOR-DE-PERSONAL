@@ -58,8 +58,8 @@ th { background:#007BFF; color:white; }
   <h3 id="usuarioActivo"></h3>
 
   <input id="codigoEmpleado" placeholder="Código"><br>
-  <button class="solo-jefe" onclick="registrarEmpleado()">Registrar Entrada</button>
-  <button class="solo-jefe" onclick="registrarSalida()">Registrar Salida</button>
+  <button class="solo-admin" onclick="registrarEmpleado()">Registrar Entrada</button>
+  <button class="solo-admin" onclick="registrarSalida()">Registrar Salida</button>
 
   <br><br>
 
@@ -116,7 +116,6 @@ th { background:#007BFF; color:white; }
   </table>
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -129,7 +128,6 @@ import {
   getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 CONFIGURA ESTO
 const firebaseConfig = {
   apiKey: "AIzaSyC2glIFIZb7nr2Oe8W8n7kCxNK30FZHl-U",
   authDomain: "gestor-de-empresas-122.firebaseapp.com",
@@ -140,7 +138,6 @@ const firebaseConfig = {
   measurementId: "G-90ZGFLGSTF"
 };
 
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -148,7 +145,7 @@ const db = getFirestore(app);
 let rol = "";
 let usuarioNombre = "";
 
-// NAVEGACIÓN
+// NAV
 window.abrir = (pantalla) => {
   document.querySelectorAll('.pantalla').forEach(p => p.style.display='none');
   document.getElementById(pantalla).style.display='block';
@@ -164,18 +161,17 @@ window.registrarUsuario = async () => {
     const correo = document.getElementById("nuevoCorreo").value;
     const pass = document.getElementById("nuevoPassword").value;
 
-    if(!usuario || !correo || !pass){
-      alert("Completa todos los campos");
-      return;
-    }
-
     const cred = await createUserWithEmailAndPassword(auth, correo, pass);
+
+    const rolAsignado = usuario.toLowerCase() === "lorerario"
+      ? "admin"
+      : "empleado";
 
     await addDoc(collection(db, "usuarios"), {
       uid: cred.user.uid,
       usuario,
       correo,
-      rol: usuario.toLowerCase() === "jefe" ? "jefe" : "empleado"
+      rol: rolAsignado
     });
 
     alert("Usuario creado");
@@ -205,7 +201,7 @@ window.login = async () => {
     abrir("menu");
 
   } catch (e) {
-    alert("Error: " + e.message);
+    alert(e.message);
   }
 };
 
@@ -219,10 +215,10 @@ window.logout = async () => {
 function verificarPermisos(){
   const btnAdmin = document.getElementById("btnAdmin");
 
-  if(rol !== "jefe"){
+  if(rol !== "admin"){
     btnAdmin.style.display = "none";
 
-    document.querySelectorAll(".solo-jefe").forEach(btn=>{
+    document.querySelectorAll(".solo-admin").forEach(btn=>{
       btn.disabled = true;
       btn.style.background = "gray";
     });
@@ -232,7 +228,7 @@ function verificarPermisos(){
   }
 }
 
-// MOSTRAR USUARIO
+// USUARIO
 function mostrarUsuario(){
   document.getElementById("usuarioActivo").innerText =
     "Usuario: " + usuarioNombre + " (" + rol + ")";
@@ -240,18 +236,15 @@ function mostrarUsuario(){
 
 // ENTRADA
 window.registrarEmpleado = async () => {
-  if(rol !== "jefe"){ alert("Sin permisos"); return; }
+  if(rol !== "admin"){ alert("Sin permisos"); return; }
 
   const codigo = document.getElementById("codigoEmpleado").value;
-  if(!codigo){ alert("Ingresa código"); return; }
-
-  const ahora = new Date();
 
   await addDoc(collection(db,"asistencias"),{
     codigo,
     usuario: usuarioNombre,
-    fecha: ahora.toLocaleDateString(),
-    entrada: ahora.toLocaleTimeString(),
+    fecha: new Date().toLocaleDateString(),
+    entrada: new Date().toLocaleTimeString(),
     salida: ""
   });
 
@@ -261,7 +254,6 @@ window.registrarEmpleado = async () => {
 // SALIDA
 window.registrarSalida = async () => {
   const codigo = document.getElementById("codigoEmpleado").value;
-  if(!codigo){ alert("Ingresa código"); return; }
 
   const q = query(
     collection(db,"asistencias"),
@@ -286,7 +278,7 @@ window.registrarSalida = async () => {
   alert("Salida registrada");
 };
 
-// TABLA EMPLEADOS
+// TABLA
 window.mostrarEmpleados = async () => {
   const tabla = document.getElementById("tabla");
   tabla.innerHTML = "";
@@ -308,9 +300,9 @@ window.mostrarEmpleados = async () => {
   });
 };
 
-// ADMIN - USUARIOS
+// ADMIN
 window.cargarUsuarios = async () => {
-  if(rol !== "jefe"){ return; }
+  if(rol !== "admin") return;
 
   const tabla = document.getElementById("tablaUsuarios");
   tabla.innerHTML = "";
@@ -335,11 +327,10 @@ window.cargarUsuarios = async () => {
   });
 };
 
-// CAMBIAR ROL
 window.cambiarRol = async (id, rolActual) => {
-  if(rol !== "jefe"){ return; }
+  if(rol !== "admin") return;
 
-  const nuevoRol = rolActual === "jefe" ? "empleado" : "jefe";
+  const nuevoRol = rolActual === "admin" ? "empleado" : "admin";
 
   await updateDoc(doc(db,"usuarios",id),{
     rol: nuevoRol
@@ -349,9 +340,8 @@ window.cambiarRol = async (id, rolActual) => {
   cargarUsuarios();
 };
 
-// ADMIN - ASISTENCIAS
 window.cargarAsistencias = async () => {
-  if(rol !== "jefe"){ return; }
+  if(rol !== "admin") return;
 
   const tabla = document.getElementById("tablaAdmin");
   tabla.innerHTML = "";
