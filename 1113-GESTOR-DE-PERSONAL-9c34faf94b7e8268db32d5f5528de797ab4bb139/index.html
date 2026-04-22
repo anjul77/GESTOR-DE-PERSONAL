@@ -41,6 +41,10 @@ th { background:#007BFF; color:white; }
   <input id="usuario" placeholder="Usuario"><br>
   <input id="nuevoCorreo" placeholder="Correo"><br>
   <input id="nuevoPassword" type="password" placeholder="Contraseña"><br>
+
+  <!-- ✅ MENSAJE -->
+  <p id="mensajeRegistro" style="font-weight:bold;"></p>
+
   <button onclick="registrarUsuario()">Crear cuenta</button>
   <button onclick="abrir('login')">Volver</button>
 </div>
@@ -161,6 +165,13 @@ window.registrarUsuario = async () => {
     const correo = document.getElementById("nuevoCorreo").value;
     const pass = document.getElementById("nuevoPassword").value;
 
+    if(!usuario || !correo || !pass){
+      document.getElementById("mensajeRegistro").style.color = "red";
+      document.getElementById("mensajeRegistro").innerText =
+        "⚠️ Completa todos los campos";
+      return;
+    }
+
     const cred = await createUserWithEmailAndPassword(auth, correo, pass);
 
     const rolAsignado = usuario.toLowerCase() === "lorerario"
@@ -174,11 +185,26 @@ window.registrarUsuario = async () => {
       rol: rolAsignado
     });
 
-    alert("Usuario creado");
-    abrir("login");
+    // ✅ MENSAJE
+    document.getElementById("mensajeRegistro").style.color = "green";
+    document.getElementById("mensajeRegistro").innerText =
+      "✅ Usuario registrado exitosamente";
+
+    // limpiar
+    document.getElementById("usuario").value = "";
+    document.getElementById("nuevoCorreo").value = "";
+    document.getElementById("nuevoPassword").value = "";
+
+    // redirigir
+    setTimeout(() => {
+      abrir("login");
+      document.getElementById("mensajeRegistro").innerText = "";
+    }, 2000);
 
   } catch (e) {
-    alert(e.message);
+    document.getElementById("mensajeRegistro").style.color = "red";
+    document.getElementById("mensajeRegistro").innerText =
+      "❌ " + e.message;
   }
 };
 
