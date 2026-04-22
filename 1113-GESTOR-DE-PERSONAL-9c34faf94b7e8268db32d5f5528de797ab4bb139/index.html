@@ -21,10 +21,41 @@ th, td {
   padding:8px;
 }
 th { background:#007BFF; color:white; }
+
+/* 🔄 LOADER */
+#loader {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: #eef2f3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid #ccc;
+  border-top: 6px solid #007BFF;
+  border-radius: 50%;
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </style>
 </head>
 
 <body>
+
+<!-- 🔄 LOADER -->
+<div id="loader">
+  <div class="spinner"></div>
+</div>
 
 <!-- LOGIN -->
 <div id="login" class="pantalla">
@@ -42,7 +73,6 @@ th { background:#007BFF; color:white; }
   <input id="nuevoCorreo" placeholder="Correo"><br>
   <input id="nuevoPassword" type="password" placeholder="Contraseña"><br>
 
-  <!-- ✅ MENSAJE -->
   <p id="mensajeRegistro" style="font-weight:bold;"></p>
 
   <button onclick="registrarUsuario()">Crear cuenta</button>
@@ -149,6 +179,21 @@ const db = getFirestore(app);
 let rol = "";
 let usuarioNombre = "";
 
+// 🔄 LOADER CONTROL
+function mostrarLoader(){
+  document.getElementById("loader").style.display = "flex";
+}
+
+function ocultarLoader(){
+  document.getElementById("loader").style.display = "none";
+}
+
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    ocultarLoader();
+  }, 800);
+});
+
 // NAV
 window.abrir = (pantalla) => {
   document.querySelectorAll('.pantalla').forEach(p => p.style.display='none');
@@ -161,6 +206,8 @@ window.abrir = (pantalla) => {
 // REGISTRO
 window.registrarUsuario = async () => {
   try {
+    mostrarLoader();
+
     const usuario = document.getElementById("usuario").value;
     const correo = document.getElementById("nuevoCorreo").value;
     const pass = document.getElementById("nuevoPassword").value;
@@ -169,6 +216,7 @@ window.registrarUsuario = async () => {
       document.getElementById("mensajeRegistro").style.color = "red";
       document.getElementById("mensajeRegistro").innerText =
         "⚠️ Completa todos los campos";
+      ocultarLoader();
       return;
     }
 
@@ -185,17 +233,14 @@ window.registrarUsuario = async () => {
       rol: rolAsignado
     });
 
-    // ✅ MENSAJE
     document.getElementById("mensajeRegistro").style.color = "green";
     document.getElementById("mensajeRegistro").innerText =
       "✅ Usuario registrado exitosamente";
 
-    // limpiar
     document.getElementById("usuario").value = "";
     document.getElementById("nuevoCorreo").value = "";
     document.getElementById("nuevoPassword").value = "";
 
-    // redirigir
     setTimeout(() => {
       abrir("login");
       document.getElementById("mensajeRegistro").innerText = "";
@@ -205,12 +250,16 @@ window.registrarUsuario = async () => {
     document.getElementById("mensajeRegistro").style.color = "red";
     document.getElementById("mensajeRegistro").innerText =
       "❌ " + e.message;
+  } finally {
+    ocultarLoader();
   }
 };
 
 // LOGIN
 window.login = async () => {
   try {
+    mostrarLoader();
+
     const correo = document.getElementById("correo").value;
     const pass = document.getElementById("password").value;
 
@@ -228,13 +277,17 @@ window.login = async () => {
 
   } catch (e) {
     alert(e.message);
+  } finally {
+    ocultarLoader();
   }
 };
 
 // LOGOUT
 window.logout = async () => {
+  mostrarLoader();
   await signOut(auth);
   abrir("login");
+  ocultarLoader();
 };
 
 // PERMISOS
@@ -264,6 +317,8 @@ function mostrarUsuario(){
 window.registrarEmpleado = async () => {
   if(rol !== "admin"){ alert("Sin permisos"); return; }
 
+  mostrarLoader();
+
   const codigo = document.getElementById("codigoEmpleado").value;
 
   await addDoc(collection(db,"asistencias"),{
@@ -274,11 +329,14 @@ window.registrarEmpleado = async () => {
     salida: ""
   });
 
+  ocultarLoader();
   alert("Entrada registrada");
 };
 
 // SALIDA
 window.registrarSalida = async () => {
+  mostrarLoader();
+
   const codigo = document.getElementById("codigoEmpleado").value;
 
   const q = query(
@@ -291,6 +349,7 @@ window.registrarSalida = async () => {
   const snapshot = await getDocs(q);
 
   if(snapshot.empty){
+    ocultarLoader();
     alert("No hay entrada pendiente");
     return;
   }
@@ -301,92 +360,8 @@ window.registrarSalida = async () => {
     salida: new Date().toLocaleTimeString()
   });
 
+  ocultarLoader();
   alert("Salida registrada");
-};
-
-// TABLA
-window.mostrarEmpleados = async () => {
-  const tabla = document.getElementById("tabla");
-  tabla.innerHTML = "";
-
-  const snapshot = await getDocs(collection(db,"asistencias"));
-
-  snapshot.forEach(doc=>{
-    const d = doc.data();
-
-    tabla.innerHTML += `
-      <tr>
-        <td>${d.codigo}</td>
-        <td>${d.usuario}</td>
-        <td>${d.fecha}</td>
-        <td>${d.entrada}</td>
-        <td>${d.salida || "-"}</td>
-      </tr>
-    `;
-  });
-};
-
-// ADMIN
-window.cargarUsuarios = async () => {
-  if(rol !== "admin") return;
-
-  const tabla = document.getElementById("tablaUsuarios");
-  tabla.innerHTML = "";
-
-  const snapshot = await getDocs(collection(db,"usuarios"));
-
-  snapshot.forEach(docu=>{
-    const d = docu.data();
-
-    tabla.innerHTML += `
-      <tr>
-        <td>${d.usuario}</td>
-        <td>${d.correo}</td>
-        <td>${d.rol}</td>
-        <td>
-          <button onclick="cambiarRol('${docu.id}','${d.rol}')">
-            Cambiar Rol
-          </button>
-        </td>
-      </tr>
-    `;
-  });
-};
-
-window.cambiarRol = async (id, rolActual) => {
-  if(rol !== "admin") return;
-
-  const nuevoRol = rolActual === "admin" ? "empleado" : "admin";
-
-  await updateDoc(doc(db,"usuarios",id),{
-    rol: nuevoRol
-  });
-
-  alert("Rol actualizado");
-  cargarUsuarios();
-};
-
-window.cargarAsistencias = async () => {
-  if(rol !== "admin") return;
-
-  const tabla = document.getElementById("tablaAdmin");
-  tabla.innerHTML = "";
-
-  const snapshot = await getDocs(collection(db,"asistencias"));
-
-  snapshot.forEach(docu=>{
-    const d = docu.data();
-
-    tabla.innerHTML += `
-      <tr>
-        <td>${d.codigo}</td>
-        <td>${d.usuario}</td>
-        <td>${d.fecha}</td>
-        <td>${d.entrada}</td>
-        <td>${d.salida || "-"}</td>
-      </tr>
-    `;
-  });
 };
 
 </script>
