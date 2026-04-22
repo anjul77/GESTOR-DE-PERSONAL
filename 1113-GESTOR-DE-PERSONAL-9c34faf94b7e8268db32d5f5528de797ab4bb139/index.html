@@ -1,85 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Lorteck Empresarial</title>
-
-<style>
-body { font-family: Arial; text-align: center; background:#eef2f3; }
-button { padding:10px; margin:5px; border:none; border-radius:6px; background:#007BFF; color:white; cursor:pointer; }
-input { padding:8px; margin:5px; }
-.pantalla { display:none; }
-#login { display:block; }
-
-table {
-  width:80%;
-  margin:auto;
-  border-collapse: collapse;
-}
-th, td {
-  border:1px solid #ccc;
-  padding:8px;
-}
-th { background:#007BFF; color:white; }
-</style>
-</head>
-
-<body>
-
-<!-- LOGIN -->
-<div id="login" class="pantalla">
-  <h2>Lorteck</h2>
-  <input id="correo" placeholder="Correo"><br>
-  <input id="password" type="password" placeholder="Contraseña"><br>
-  <button onclick="login()">Iniciar sesión</button>
-  <button onclick="abrir('registro')">Registrarse</button>
-</div>
-
-<!-- REGISTRO -->
-<div id="registro" class="pantalla">
-  <h3>Registro</h3>
-  <input id="usuario" placeholder="Usuario"><br>
-  <input id="nuevoCorreo" placeholder="Correo"><br>
-  <input id="nuevoPassword" type="password" placeholder="Contraseña"><br>
-  <button onclick="registrarUsuario()">Crear cuenta</button>
-  <button onclick="abrir('login')">Volver</button>
-</div>
-
-<!-- MENU -->
-<div id="menu" class="pantalla">
-  <h2>Menú Lorteck</h2>
-  <button onclick="abrir('empleados')">Empleados</button>
-  <button onclick="logout()">Cerrar sesión</button>
-</div>
-
-<!-- EMPLEADOS -->
-<div id="empleados" class="pantalla">
-  <h3 id="usuarioActivo"></h3>
-
-  <input id="codigoEmpleado" placeholder="Código"><br>
-  <button onclick="registrarEmpleado()">Registrar Entrada</button>
-  <button onclick="registrarSalida()">Registrar Salida</button>
-
-  <br><br>
-
-  <button onclick="mostrarEmpleados()">Actualizar tabla</button>
-  <button onclick="abrir('menu')">Volver</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Código</th>
-        <th>Usuario</th>
-        <th>Fecha</th>
-        <th>Entrada</th>
-        <th>Salida</th>
-      </tr>
-    </thead>
-    <tbody id="tabla"></tbody>
-  </table>
-</div>
-
-<!-- 🔥 FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -89,10 +7,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
-  getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc
+  getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ⚠️ REEMPLAZA ESTO
+// 🔥 CONFIG REAL AQUÍ
 const firebaseConfig = {
   apiKey: "TU_API_KEY",
   authDomain: "TU_DOMINIO",
@@ -117,38 +35,54 @@ window.abrir = (pantalla) => {
 
 // REGISTRO
 window.registrarUsuario = async () => {
-  const usuario = document.getElementById("usuario").value;
-  const correo = document.getElementById("nuevoCorreo").value;
-  const pass = document.getElementById("nuevoPassword").value;
+  try {
+    const usuario = document.getElementById("usuario").value;
+    const correo = document.getElementById("nuevoCorreo").value;
+    const pass = document.getElementById("nuevoPassword").value;
 
-  const cred = await createUserWithEmailAndPassword(auth, correo, pass);
+    if(!usuario || !correo || !pass){
+      alert("Completa todos los campos");
+      return;
+    }
 
-  await addDoc(collection(db, "usuarios"), {
-    uid: cred.user.uid,
-    usuario,
-    correo,
-    rol: usuario.toLowerCase() === "jefe" ? "jefe" : "empleado"
-  });
+    const cred = await createUserWithEmailAndPassword(auth, correo, pass);
 
-  alert("Usuario creado");
+    await addDoc(collection(db, "usuarios"), {
+      uid: cred.user.uid,
+      usuario,
+      correo,
+      rol: usuario.toLowerCase() === "jefe" ? "jefe" : "empleado"
+    });
+
+    alert("Usuario creado");
+    abrir("login");
+
+  } catch (e) {
+    alert("Error: " + e.message);
+  }
 };
 
 // LOGIN
 window.login = async () => {
-  const correo = document.getElementById("correo").value;
-  const pass = document.getElementById("password").value;
+  try {
+    const correo = document.getElementById("correo").value;
+    const pass = document.getElementById("password").value;
 
-  const cred = await signInWithEmailAndPassword(auth, correo, pass);
+    const cred = await signInWithEmailAndPassword(auth, correo, pass);
 
-  const q = query(collection(db, "usuarios"), where("uid","==",cred.user.uid));
-  const snapshot = await getDocs(q);
+    const q = query(collection(db, "usuarios"), where("uid","==",cred.user.uid));
+    const snapshot = await getDocs(q);
 
-  snapshot.forEach(doc => {
-    rol = doc.data().rol;
-    usuarioNombre = doc.data().usuario;
-  });
+    snapshot.forEach(doc => {
+      rol = doc.data().rol;
+      usuarioNombre = doc.data().usuario;
+    });
 
-  abrir("menu");
+    abrir("menu");
+
+  } catch (e) {
+    alert("Error login: " + e.message);
+  }
 };
 
 // LOGOUT
@@ -157,14 +91,12 @@ window.logout = async () => {
   abrir("login");
 };
 
-// PERMISOS
+// PERMISOS (mejorado)
 function verificarPermisos(){
   if(rol !== "jefe"){
-    document.querySelectorAll("button").forEach(btn=>{
-      if(!btn.innerText.includes("Cerrar sesión")){
-        btn.disabled = true;
-        btn.style.background = "gray";
-      }
+    document.querySelectorAll(".solo-jefe").forEach(btn=>{
+      btn.disabled = true;
+      btn.style.background = "gray";
     });
   }
 }
@@ -172,46 +104,65 @@ function verificarPermisos(){
 // MOSTRAR USUARIO
 function mostrarUsuario(){
   document.getElementById("usuarioActivo").innerText =
-    "Usuario: " + usuarioNombre;
+    "Usuario: " + usuarioNombre + " (" + rol + ")";
 }
 
 // REGISTRAR ENTRADA
 window.registrarEmpleado = async () => {
-  if(rol !== "jefe"){ alert("Sin permisos"); return; }
+  try {
+    if(rol !== "jefe"){ alert("Sin permisos"); return; }
 
-  const codigo = document.getElementById("codigoEmpleado").value;
-  const ahora = new Date();
+    const codigo = document.getElementById("codigoEmpleado").value;
+    if(!codigo){ alert("Ingresa código"); return; }
 
-  await addDoc(collection(db,"asistencias"),{
-    codigo,
-    usuario: usuarioNombre,
-    fecha: ahora.toLocaleDateString(),
-    entrada: ahora.toLocaleTimeString(),
-    salida: ""
-  });
+    const ahora = new Date();
 
-  alert("Entrada registrada");
+    await addDoc(collection(db,"asistencias"),{
+      codigo,
+      usuario: usuarioNombre,
+      fecha: ahora.toLocaleDateString(),
+      entrada: ahora.toLocaleTimeString(),
+      salida: ""
+    });
+
+    alert("Entrada registrada");
+
+  } catch(e){
+    alert(e.message);
+  }
 };
 
-// REGISTRAR SALIDA
+// REGISTRAR SALIDA (corregido)
 window.registrarSalida = async () => {
-  const codigo = document.getElementById("codigoEmpleado").value;
+  try {
+    const codigo = document.getElementById("codigoEmpleado").value;
+    if(!codigo){ alert("Ingresa código"); return; }
 
-  const q = query(collection(db,"asistencias"),
-    where("codigo","==",codigo)
-  );
+    const q = query(
+      collection(db,"asistencias"),
+      where("codigo","==",codigo),
+      where("salida","==",""),
+      limit(1)
+    );
 
-  const snapshot = await getDocs(q);
+    const snapshot = await getDocs(q);
 
-  snapshot.forEach(async d=>{
-    if(!d.data().salida){
-      await updateDoc(doc(db,"asistencias",d.id),{
-        salida: new Date().toLocaleTimeString()
-      });
+    if(snapshot.empty){
+      alert("No hay entrada sin salida");
+      return;
     }
-  });
 
-  alert("Salida registrada");
+    const d = snapshot.docs[0];
+
+    await updateDoc(doc(db,"asistencias",d.id),{
+      salida: new Date().toLocaleTimeString()
+    });
+
+    alert("Salida registrada");
+
+  } catch(e){
+    alert(e.message);
+  }
 };
 
 // MOSTRAR TABLA
@@ -238,5 +189,3 @@ window.mostrarEmpleados = async () => {
 
 </script>
 
-</body>
-</html>
