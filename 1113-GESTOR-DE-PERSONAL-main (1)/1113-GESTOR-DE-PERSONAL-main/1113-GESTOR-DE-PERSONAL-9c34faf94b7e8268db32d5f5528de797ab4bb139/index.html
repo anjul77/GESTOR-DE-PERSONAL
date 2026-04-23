@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lorteck</title>
+
+<style>
+body{
+  font-family: Arial;
+  text-align:center;
+  background:#ffffff;
+  transition:0.3s;
+}
+
+.pantalla{ display:none; }
+#login{ display:block; }
+
+input{
+  padding:8px;
+  margin:5px;
+}
+
+button{
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:6px;
+  background:#e9b5f0;
+  color:white;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#2c0707f3;
+}
+
+table{
+  width:80%;
+  margin:auto;
+  border-collapse:collapse;
+}
+
+th,td{
+  border:1px solid #ccc;
+  padding:8px;
+}
+
+th{
+  background:#007BFF;
+  color:white;
+}
+
+.menu-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 160px);
+  gap:10px;
+  justify-content:center;
+  margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="pantalla">
+  <h3>Login</h3>
+  <input id="correo" placeholder="Correo"><br>
+  <input id="password" type="password" placeholder="Contraseña"><br>
+  <button onclick="login()">Entrar</button>
+  <button onclick="abrir('registro')">Registro</button>
+</div>
+
+<!-- REGISTRO -->
+<div id="registro" class="pantalla">
+  <h2>Registro</h2>
+  <input id="usuario" placeholder="Usuario"><br>
+  <input id="nuevoCorreo" placeholder="Correo"><br>
+  <input id="nuevoPassword" type="password"><br>
+  <button onclick="registrarUsuario()">Guardar</button>
+  <button onclick="abrir('login')">Volver</button>
+</div>
+
+<!-- MENU -->
+<div id="menu" class="pantalla">
+  <h3>Menú</h3>
+
+  <div class="menu-grid">
+    <button onclick="abrirConDelay('empleados')">Empleados</button>
+    <button id="btnAdmin" onclick="abrirConDelay('admin')">Admin</button>
+    <button onclick="abrirConDelay('reportes')">Reportes</button>
+    <button onclick="abrirConDelay('perfil')">Perfil</button>
+  </div>
+
+  <br>
+  <button onclick="logout()">Cerrar sesión</button>
+</div>
+
+<!-- EMPLEADOS -->
+<div id="empleados" class="pantalla">
+  <h3 id="usuarioActivo"></h3>
+
+  <input id="codigoEmpleado" placeholder="Código"><br>
+  <button onclick="registrarEmpleado()">Entrada</button>
+  <button onclick="registrarSalida()">Salida</button>
+
+  <br><br>
+  <button onclick="mostrarEmpleados()">Actualizar</button>
+  <button onclick="abrirConDelay('menu')">Volver</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Usuario</th>
+        <th>Fecha</th>
+        <th>Entrada</th>
+        <th>Salida</th>
+      </tr>
+    </thead>
+    <tbody id="tabla"></tbody>
+  </table>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="pantalla">
+  <h2>Admin</h2>
+
+  <button onclick="cargarUsuarios()">Usuarios</button>
+  <button onclick="cargarAsistencias()">Asistencias</button>
+  <button onclick="abrirConDelay('menu')">Volver</button>
+
+  <h3>Usuarios</h3>
+  <table><tbody id="tablaUsuarios"></tbody></table>
+
+  <h3>Asistencias</h3>
+  <table><tbody id="tablaAdmin"></tbody></table>
+</div>
+
+<!-- OTROS -->
+<div id="reportes" class="pantalla">
+  <h2>Reportes</h2>
+  <button onclick="abrirConDelay('menu')">Volver</button>
+</div>
+
+<div id="perfil" class="pantalla">
+  <h2>Perfil</h2>
+  <button onclick="abrirConDelay('menu')">Volver</button>
+</div>
+
+<script>
+let rol = "";
+let usuarioNombre = "";
+
+/* 👑 ADMINS */
+const ADMINS = [
+  "admin@empresa.com",
+  "jefe@empresa.com"
+];
+
+/* STORAGE */
+function getUsuarios(){
+  return JSON.parse(localStorage.getItem("usuarios")) || [];
+}
+function setUsuarios(data){
+  localStorage.setItem("usuarios", JSON.stringify(data));
+}
+function getAsistencias(){
+  return JSON.parse(localStorage.getItem("asistencias")) || [];
+}
+function setAsistencias(data){
+  localStorage.setItem("asistencias", JSON.stringify(data));
+}
+
+/* INICIO */
+window.onload = () => abrir("login");
+
+/* DELAY */
+function abrirConDelay(p){
+  document.body.style.opacity="0.5";
+  setTimeout(()=>{
+    document.body.style.opacity="1";
+    abrir(p);
+  },1000);
+}
+
+/* NAV */
+function abrir(p){
+  document.querySelectorAll('.pantalla').forEach(x=>x.style.display="none");
+  const el=document.getElementById(p);
+  if(el) el.style.display="block";
+
+  if(p==="menu") verificarPermisos();
+  if(p==="empleados") mostrarUsuario();
+}
+
+/* REGISTRO */
+function registrarUsuario(){
+  let u=usuario.value;
+  let c=nuevoCorreo.value;
+  let p=nuevoPassword.value;
+
+  if(!u||!c||!p) return alert("Completa todo");
+
+  let usuarios=getUsuarios();
+
+  if(usuarios.find(x=>x.correo===c))
+    return alert("Ya existe");
+
+  let rolAsignado = ADMINS.includes(c) ? "admin" : "empleado";
+
+  usuarios.push({usuario:u,correo:c,pass:p,rol:rolAsignado});
+  setUsuarios(usuarios);
+
+  alert("Registrado");
+  abrir("login");
+}
+
+/* LOGIN */
+function login(){
+  let c=correo.value;
+  let p=password.value;
+
+  let user=getUsuarios().find(x=>x.correo===c&&x.pass===p);
+
+  if(!user) return alert("Error");
+
+  rol=user.rol;
+  usuarioNombre=user.usuario;
+
+  abrir("menu");
+}
+
+/* LOGOUT */
+function logout(){
+  rol=""; usuarioNombre="";
+  abrir("login");
+}
+
+/* PERMISOS */
+function verificarPermisos(){
+  const btn=document.getElementById("btnAdmin");
+  if(btn) btn.style.display=rol==="admin"?"inline-block":"none";
+}
+
+/* USUARIO */
+function mostrarUsuario(){
+  usuarioActivo.innerText=usuarioNombre+" ("+rol+")";
+}
+
+/* ASISTENCIA */
+function registrarEmpleado(){
+  if(rol!=="admin") return alert("Sin permisos");
+
+  let c=codigoEmpleado.value;
+
+  let a=getAsistencias();
+
+  a.push({
+    codigo:c,
+    usuario:usuarioNombre,
+    fecha:new Date().toLocaleDateString(),
+    entrada:new Date().toLocaleTimeString(),
+    salida:""
+  });
+
+  setAsistencias(a);
+  alert("Entrada OK");
+}
+
+function registrarSalida(){
+  let c=codigoEmpleado.value;
+
+  let a=getAsistencias();
+
+  let r=a.find(x=>x.codigo===c&&x.salida==="");
+
+  if(!r) return alert("No hay entrada");
+
+  r.salida=new Date().toLocaleTimeString();
+
+  setAsistencias(a);
+  alert("Salida OK");
+}
+
+/* TABLAS */
+function mostrarEmpleados(){
+  tabla.innerHTML=getAsistencias().map(x=>`
+    <tr>
+      <td>${x.codigo}</td>
+      <td>${x.usuario}</td>
+      <td>${x.fecha}</td>
+      <td>${x.entrada}</td>
+      <td>${x.salida||"-"}</td>
+    </tr>
+  `).join("");
+}
+
+function cargarUsuarios(){
+  tablaUsuarios.innerHTML=getUsuarios().map(x=>`
+    <tr>
+      <td>${x.usuario}</td>
+      <td>${x.correo}</td>
+      <td>${x.rol}</td>
+    </tr>
+  `).join("");
+}
+
+function cargarAsistencias(){
+  tablaAdmin.innerHTML=getAsistencias().map(x=>`
+    <tr>
+      <td>${x.codigo}</td>
+      <td>${x.usuario}</td>
+      <td>${x.fecha}</td>
+      <td>${x.entrada}</td>
+      <td>${x.salida||"-"}</td>
+    </tr>
+  `).join("");
+}
+</script>
+
+</body>
+</html>
