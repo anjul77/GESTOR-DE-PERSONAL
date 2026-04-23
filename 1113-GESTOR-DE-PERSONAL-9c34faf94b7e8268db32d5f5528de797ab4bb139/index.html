@@ -19,10 +19,17 @@ function setAsistencias(data){
   localStorage.setItem("asistencias", JSON.stringify(data));
 }
 
+// 🚀 INICIALIZACIÓN (IMPORTANTE)
+window.onload = () => {
+  abrir("login");
+};
+
 // NAV
 window.abrir = (pantalla) => {
   document.querySelectorAll('.pantalla').forEach(p => p.style.display='none');
-  document.getElementById(pantalla).style.display='block';
+
+  const el = document.getElementById(pantalla);
+  if(el) el.style.display='block';
 
   if (pantalla === "menu") verificarPermisos();
   if (pantalla === "empleados") mostrarUsuario();
@@ -30,9 +37,9 @@ window.abrir = (pantalla) => {
 
 // REGISTRO
 window.registrarUsuario = () => {
-  const usuario = document.getElementById("usuario").value;
-  const correo = document.getElementById("nuevoCorreo").value;
-  const pass = document.getElementById("nuevoPassword").value;
+  const usuario = document.getElementById("usuario").value.trim();
+  const correo = document.getElementById("nuevoCorreo").value.trim();
+  const pass = document.getElementById("nuevoPassword").value.trim();
 
   if(!usuario || !correo || !pass){
     alert("Completa todo");
@@ -41,6 +48,12 @@ window.registrarUsuario = () => {
 
   let usuarios = getUsuarios();
 
+  // 🚫 evitar correos duplicados
+  if(usuarios.some(u => u.correo === correo)){
+    alert("Ese correo ya existe");
+    return;
+  }
+
   const rolAsignado = usuario.toLowerCase() === "lorerario"
     ? "admin"
     : "empleado";
@@ -48,14 +61,19 @@ window.registrarUsuario = () => {
   usuarios.push({usuario, correo, pass, rol: rolAsignado});
   setUsuarios(usuarios);
 
-  alert("Registrado");
+  alert("Registrado correctamente");
+
+  document.getElementById("usuario").value = "";
+  document.getElementById("nuevoCorreo").value = "";
+  document.getElementById("nuevoPassword").value = "";
+
   abrir("login");
 };
 
 // LOGIN
 window.login = () => {
-  const correo = document.getElementById("correo").value;
-  const pass = document.getElementById("password").value;
+  const correo = document.getElementById("correo").value.trim();
+  const pass = document.getElementById("password").value.trim();
 
   let usuarios = getUsuarios();
 
@@ -83,6 +101,8 @@ window.logout = () => {
 function verificarPermisos(){
   const btnAdmin = document.getElementById("btnAdmin");
 
+  if(!btnAdmin) return;
+
   if(rol !== "admin"){
     btnAdmin.style.display = "none";
 
@@ -93,20 +113,35 @@ function verificarPermisos(){
 
   } else {
     btnAdmin.style.display = "inline-block";
+
+    document.querySelectorAll(".solo-admin").forEach(btn=>{
+      btn.disabled = false;
+      btn.style.background = "#007BFF";
+    });
   }
 }
 
 // USUARIO
 function mostrarUsuario(){
-  document.getElementById("usuarioActivo").innerText =
-    "Usuario: " + usuarioNombre + " (" + rol + ")";
+  const el = document.getElementById("usuarioActivo");
+  if(el){
+    el.innerText = "Usuario: " + usuarioNombre + " (" + rol + ")";
+  }
 }
 
 // ENTRADA
 window.registrarEmpleado = () => {
-  if(rol !== "admin"){ alert("Sin permisos"); return; }
+  if(rol !== "admin"){
+    alert("Sin permisos");
+    return;
+  }
 
-  const codigo = document.getElementById("codigoEmpleado").value;
+  const codigo = document.getElementById("codigoEmpleado").value.trim();
+
+  if(!codigo){
+    alert("Ingresa un código");
+    return;
+  }
 
   let asistencias = getAsistencias();
 
@@ -119,12 +154,18 @@ window.registrarEmpleado = () => {
   });
 
   setAsistencias(asistencias);
+
   alert("Entrada registrada");
 };
 
 // SALIDA
 window.registrarSalida = () => {
-  const codigo = document.getElementById("codigoEmpleado").value;
+  const codigo = document.getElementById("codigoEmpleado").value.trim();
+
+  if(!codigo){
+    alert("Ingresa un código");
+    return;
+  }
 
   let asistencias = getAsistencias();
 
@@ -144,9 +185,16 @@ window.registrarSalida = () => {
 // MOSTRAR EMPLEADOS
 window.mostrarEmpleados = () => {
   let tabla = document.getElementById("tabla");
+  if(!tabla) return;
+
   tabla.innerHTML = "";
 
   let asistencias = getAsistencias();
+
+  if(asistencias.length === 0){
+    tabla.innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
+    return;
+  }
 
   asistencias.forEach(a => {
     tabla.innerHTML += `
@@ -155,7 +203,7 @@ window.mostrarEmpleados = () => {
         <td>${a.usuario}</td>
         <td>${a.fecha}</td>
         <td>${a.entrada}</td>
-        <td>${a.salida}</td>
+        <td>${a.salida || "-"}</td>
       </tr>
     `;
   });
@@ -164,6 +212,8 @@ window.mostrarEmpleados = () => {
 // ADMIN - USUARIOS
 window.cargarUsuarios = () => {
   let tabla = document.getElementById("tablaUsuarios");
+  if(!tabla) return;
+
   tabla.innerHTML = "";
 
   let usuarios = getUsuarios();
@@ -183,6 +233,8 @@ window.cargarUsuarios = () => {
 // ADMIN - ASISTENCIAS
 window.cargarAsistencias = () => {
   let tabla = document.getElementById("tablaAdmin");
+  if(!tabla) return;
+
   tabla.innerHTML = "";
 
   let asistencias = getAsistencias();
@@ -194,7 +246,7 @@ window.cargarAsistencias = () => {
         <td>${a.usuario}</td>
         <td>${a.fecha}</td>
         <td>${a.entrada}</td>
-        <td>${a.salida}</td>
+        <td>${a.salida || "-"}</td>
       </tr>
     `;
   });
